@@ -30,7 +30,8 @@ var force_scrape = ['ruby','php'];
 var file_type    = {'ruby':'rb',
                     'php':'php',
                     'matlab':'m',
-                    'haskell':'hs'};
+                    'haskell':'hs',
+                    'brainfuck':'bf'};
 
 // Make request to LearnXinYMinutes
 function start_scraping(){
