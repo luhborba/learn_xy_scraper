@@ -4,6 +4,7 @@
 =====================================
 */
 
+
 // Require modules
 var cheerio = require('cheerio'),
     request = require('request'),
@@ -11,50 +12,84 @@ var cheerio = require('cheerio'),
 
 // Top level variables
 var url = "http://learnxinyminutes.com";
-var languages_dir = "languages/";
+var lang_dir = "languages/";
 
 // Make language directory
-fs.stat(languages_dir, function(err,stats){
+fs.stat(lang_dir, function(err,stats){
   if (err){
-    fs.mkdir(languages_dir,0777,function(err){
+    fs.mkdir(lang_dir,0777,function(err){
       if (err) throw err
     });
   }
 });
 
+// Exceptions to scrape over download (locale issue)
+var force_scrape = ['ruby','php'];
+
+// Filetype extensions for scraped
+var file_type    = {'ruby':'rb',
+                    'php':'php',
+                    'matlab':'m',
+                    'haskell':'hs'};
+
 // Make request to LearnXinYMinutes
-request(url, function(err, resp, body){
-  if (err) throw err;
-  $ = cheerio.load(body);
+function start_scraping(){
+  request(url, function(err, resp, body){
+    if (err) throw err;
+    $ = cheerio.load(body);
 
-  // Parse out language table
-  var language = $('.container').children('table').first();
+    // Parse out language table
+    var lang_table = $('.container').children('table').first();
 
-  // Parse out languages
-  language.find('tr').each(function(){
-    var lang = $(this).find('td').first();
-    var lang_text = lang.text().trim();
-    if (lang.text() != 0){
-      // Visit each language link
-      var lang_url = url + lang.find('a').attr('href');
-      request(lang_url, function(err, resp, body){
-        if (err) throw err;
-        $ = cheerio.load(body);
-        // If link to file exists, download file
-        if ($('.filelink').length) {
-          request(url+$('.filelink a').attr('href'))
-            .pipe(fs.createWriteStream(
-                  languages_dir+$('.filelink a').text().toLowerCase())
-            );
-        }
-        // Else write code block to file
-        else {
-          fs.writeFile( languages_dir+lang_text.toLowerCase(),
-                        $('pre.highlight'),
-                        function(err) { if (err) throw err; }
-                      );
-        }
-      });
-    }
+    // Parse out languages
+    var count = lang_table.find('tr').length;
+    lang_table.find('tr').each(function(){
+      var $lang = $(this).find('td').first();
+      var lang = $lang.text().trim().toLowerCase();
+      if (lang != 0){
+        // Visit each language link
+        var lang_url = url + $lang.find('a').attr('href');
+        request(lang_url, function(err, resp, body){
+          if (err) throw err;
+          $ = cheerio.load(body);
+
+          // If link to file exists, download file
+          var filename = '';
+          if ($('.filelink').length && force_scrape.indexOf(lang) < 0) {
+            console.log('Downloading '+lang+'...');
+            filename = $('.filelink a').text().toLowerCase()
+            request(url+$('.filelink a').attr('href'))
+              .pipe(fs.createWriteStream(lang_dir+filename.replace(/^learn[-]*/,'')));
+          }
+          // Else write code block to file
+          else {
+            console.log('Scraping '+lang+'...');
+            filename=lang+(file_type[lang] ? '.'+file_type[lang] : '')
+            fs.writeFile( lang_dir+filename,
+                          $('pre.highlight').text(),
+                          function(err) { if (err) throw err; }
+                        );
+          }
+
+          // Finished Scraping (NOTE: Pseudo-finish due to async nature)
+          count = --count;
+          if (count == 1){
+            console.log('\n=================================\n');
+            console.log('       Download complete!        ');
+            console.log('\n=================================\n');
+          }
+        });
+      }
+    });
   });
-});
+}
+
+
+// Start Scraping
+start_scraping();
+
+console.log('\n=================================\n');
+console.log(' Learn X in Y Minute Web Scraper ');
+console.log('\n=================================\n');
+console.log("Files downloaded to '"+lang_dir+"'\n");
+
