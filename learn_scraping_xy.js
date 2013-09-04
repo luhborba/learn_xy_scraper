@@ -57,14 +57,15 @@ function start_scraping(){
           var filename = '';
           if ($('.filelink').length && force_scrape.indexOf(lang) < 0) {
             console.log('Downloading '+lang+'...');
-            filename = $('.filelink a').text().toLowerCase()
+            filename = $('.filelink a').text();
+            filename = 'learn_' + lang + filename.slice(filename.indexOf('.'));
             request(url+$('.filelink a').attr('href'))
-              .pipe(fs.createWriteStream(lang_dir+filename.replace(/^learn[-]*/,'')));
+              .pipe(fs.createWriteStream(lang_dir+filename));
           }
           // Else write code block to file
           else {
             console.log('Scraping '+lang+'...');
-            filename=lang+(file_type[lang] ? '.'+file_type[lang] : '')
+            filename='learn_'+lang+(file_type[lang] ? '.'+file_type[lang] : '')
             fs.writeFile( lang_dir+filename,
                           $('pre.highlight').text(),
                           function(err) { if (err) throw err; }

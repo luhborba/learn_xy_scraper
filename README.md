@@ -5,6 +5,31 @@ Minutes](http://learnxinyminutes.com). Either downloads the files if it exists
 or scrapes the relevant content from the page.
 
 
+## Usage
+
+Clone the repository to your machine:
+
+```bash
+git clone https://github.com/geekjuice/learn_xy_scraper.git
+```
+
+
+Install the modules:
+
+```bash
+cd learn_xy_scraper
+npm install
+```
+
+Finally, run scraper:
+
+```bash
+node learn_scraping_xy.js
+```
+
+By default, all of the files will download to __learn_xy_scraper/languages__.
+
+
 ## Notes
 
 Ruby and PHP files link to Portuguese(?) and Korean versions respectively. So
