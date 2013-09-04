@@ -1,11 +1,19 @@
+/*
+=====================================
+  LEARN X IN Y MINUTES WEB SCRAPER
+=====================================
+*/
+
+// Require modules
 var cheerio = require('cheerio'),
     request = require('request'),
     fs      = require('fs');
 
+// Top level variables
 var url = "http://learnxinyminutes.com";
-var languages_dir = "languages";
+var languages_dir = "languages/";
 
-
+// Make language directory
 fs.stat(languages_dir, function(err,stats){
   if (err){
     fs.mkdir(languages_dir,0777,function(err){
@@ -14,33 +22,39 @@ fs.stat(languages_dir, function(err,stats){
   }
 });
 
-// var once = 0;
+// Make request to LearnXinYMinutes
+request(url, function(err, resp, body){
+  if (err) throw err;
+  $ = cheerio.load(body);
 
-// request(url, function(err, resp, body){
-//     if (err) throw err;
-//     $ = cheerio.load(body);
-//     var language = $('.container').children('table').first();
+  // Parse out language table
+  var language = $('.container').children('table').first();
 
-//     language.find('tr').each(function(){
-//       var lang = $(this).find('td').first();
-//       var lang_text = lang.text().trim();
-//       if (lang.text() != 0){
-//         var lang_url = url + lang.find('a').attr('href');
-
-//         if (once < 3){ // DEBUG
-//           request(lang_url, function(err, resp, body){
-//             if (err) throw err;
-//             $ = cheerio.load(body);
-//             // if ($('.filelink').length) {
-//             //   request(url+$('.filelink a').attr('href')).pipe(fs.createWriteStream('languages/'+$('.filelink a').text()));
-//             // } else {
-//             //   fs.writeFile('languages/'+lang_text, $('pre.highlight'),function(err) {
-//             //     if (err) throw err;
-//             //   });
-//             // }
-//           });
-//           once = ++once;
-//         }
-//       }
-//     });
-// });
+  // Parse out languages
+  language.find('tr').each(function(){
+    var lang = $(this).find('td').first();
+    var lang_text = lang.text().trim();
+    if (lang.text() != 0){
+      // Visit each language link
+      var lang_url = url + lang.find('a').attr('href');
+      request(lang_url, function(err, resp, body){
+        if (err) throw err;
+        $ = cheerio.load(body);
+        // If link to file exists, download file
+        if ($('.filelink').length) {
+          request(url+$('.filelink a').attr('href'))
+            .pipe(fs.createWriteStream(
+                  languages_dir+$('.filelink a').text().toLowerCase())
+            );
+        }
+        // Else write code block to file
+        else {
+          fs.writeFile( languages_dir+lang_text.toLowerCase(),
+                        $('pre.highlight'),
+                        function(err) { if (err) throw err; }
+                      );
+        }
+      });
+    }
+  });
+});
