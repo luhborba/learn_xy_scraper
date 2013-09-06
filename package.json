@@ -1,8 +1,12 @@
 {
   "name" : "LearnXinYMinuteScraper",
-  "version" : "0.0.1",
+  "description": "Web scraper to extract Learn X in Y Minute Content",
+  "author": "Nicholas Hwang",
   "dependencies" : {
     "cheerio": "*",
     "request": "*"
+  },
+  "devDependencies" : {
+    "should" : "*"
   }
 }
