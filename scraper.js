@@ -81,3 +81,4 @@ function start_scraping(url, lang_dir){
 
 exports.init = mklangdir;
 exports.start = start_scraping;
+exports.force = force_scrape;
