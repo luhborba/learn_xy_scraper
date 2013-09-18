@@ -18,7 +18,7 @@ var file_type    = {'ruby':'rb',
 function mklangdir(lang_dir){
   fs.stat(lang_dir, function(err,stats){
     if (err){
-      fs.mkdir(lang_dir,777,function(err){
+      fs.mkdir(lang_dir,0777,function(err){
         if (err) throw err;
       });
     }
